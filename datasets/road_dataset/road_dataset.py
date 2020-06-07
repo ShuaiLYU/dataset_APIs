@@ -1,6 +1,8 @@
 import os
 from random import  shuffle
 import  pandas as pd
+import  numpy as np
+import  cv2
 def list_folder(root, use_absPath=True, func=None):
 	"""
 	:param root:  文件夹根目录
@@ -78,9 +80,28 @@ class RoadDataset(object):
         valid_data.to_csv(os.path.join(config_path, "valid.csv"),index=False)
         test_data.to_csv(os.path.join(config_path, "test.csv"),index=False)
 
-
     def make_dataset(self):
         pass
+
+    def gen_a_sample(self,sample):
+        file_basename_image, file_basename_label =sample
+
+        image_path = os.path.join(self.root, file_basename_image)
+        image=cv_imread(image_path,-1)
+        #print(image.shape)
+        image = np.array(image).astype(np.uint8)
+        if file_basename_label is not None:
+            label_path = os.path.join(self.root, file_basename_label)
+            pixel_label = cv_imread(label_path, -1)
+            label_pixel = np.array(pixel_label).astype(np.uint8)
+        else:
+            label_pixel=np.zeros_like(image).astype(np.uint8)
+        if self.transform_PIL is not None:
+             image,label_pixel=self.transform_PIL([image,label_pixel])
+       # utils.plt_utils.plt_show_imgs([image, label_pixel])
+        image, label_pixel = self.transform_array([image, label_pixel])
+       # utils.plt_utils.plt_show_imgs([image.squeeze(), label_pixel.squeeze()])
+        return image, label_pixel, int(label), file_basename_image
 if  __name__=="__main__":
     root="F:\学习\百度课程\dataset\无人车车道线检测训练集-初赛"
     data=RoadDataset(root)
